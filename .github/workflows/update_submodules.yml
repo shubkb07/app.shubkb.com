@@ -3,22 +3,23 @@ name: Update Submodules and Create Fully-Resolved Branch
 on:
   push:
     branches:
-      - master  # Trigger the workflow when the master branch is updated
+      - master  # Trigger on the master branch
   repository_dispatch:
-    types: [update_submodules]  # Triggered by a webhook from submodules
+    types: [update_submodules]  # Triggered by webhook
 
 jobs:
   update_submodules:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the master branch with submodules
-      - name: Checkout Repository
+      # Step 1: Checkout master branch with authentication for private submodules
+      - name: Checkout Repository with Submodules
         uses: actions/checkout@v3
         with:
-          submodules: recursive
+          token: ${{ secrets.TOKEN_PRIVATE_APP_SHUBKB_COM }}  # Use PAT for authentication
+          submodules: recursive      # Fetch submodules
 
-      # Step 2: Update submodules to the latest state
+      # Step 2: Update submodules in the master branch
       - name: Update Submodules
         run: |
           git submodule update --remote --merge
@@ -32,11 +33,11 @@ jobs:
           git fetch origin master-app || echo "Branch master-app does not exist"
           git checkout -B master-app  # Create or switch to master-app
           
-          # Resolve all submodules (download their files)
+          # Resolve all submodules into the master-app branch
           git submodule foreach --recursive git checkout master || true
           git submodule foreach --recursive git pull origin master || true
           
-          # Stage and commit all files in master-app
+          # Commit all resolved files into master-app
           git add --all
           git commit -m "Update master-app branch with resolved submodules" || echo "No changes to commit"
 
