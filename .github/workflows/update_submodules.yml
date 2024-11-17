@@ -1,0 +1,22 @@
+name: Update Submodules on Push
+
+on:
+  repository_dispatch: # Triggered by webhook
+    types: [update_submodules] # Event type set by webhook
+
+jobs:
+  update_submodules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Main Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive # Ensures submodules are included
+
+      - name: Update Submodules
+        run: |
+          git submodule update --remote
+          git add .
+          git commit -m "Update submodules to latest state"
+          git push origin main
