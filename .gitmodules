@@ -1,6 +1,0 @@
-[submodule "api/geo"]
-	path = api/geo
-	url = https://github.com/shubkb07/geo-api-php
-[submodule "share"]
-	path = share
-	url = https://github.com/shubkb07/quick-share-web
