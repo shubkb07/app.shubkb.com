@@ -1,0 +1,3 @@
+[submodule "api/geo"]
+	path = api/geo
+	url = https://github.com/shubkb07/geo-api-php
