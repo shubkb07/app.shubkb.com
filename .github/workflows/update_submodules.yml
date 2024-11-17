@@ -1,22 +1,50 @@
-name: Update Submodules on Push
+name: Update Submodules and Create Fully-Resolved Branch
 
 on:
-  repository_dispatch: # Triggered by webhook
-    types: [update_submodules] # Event type set by webhook
+  push:
+    branches:
+      - master  # Trigger the workflow when the master branch is updated
+  repository_dispatch:
+    types: [update_submodules]  # Triggered by a webhook from submodules
 
 jobs:
   update_submodules:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Main Repository
+      # Step 1: Checkout the master branch with submodules
+      - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          submodules: recursive # Ensures submodules are included
+          submodules: recursive
 
+      # Step 2: Update submodules to the latest state
       - name: Update Submodules
         run: |
-          git submodule update --remote
+          git submodule update --remote --merge
           git add .
-          git commit -m "Update submodules to latest state"
-          git push origin main
+          git commit -m "Update submodules to the latest state" || echo "No changes to commit"
+
+      # Step 3: Create/Update the master-app branch
+      - name: Create/Update master-app Branch
+        run: |
+          # Ensure we have the latest state of the master-app branch
+          git fetch origin master-app || echo "Branch master-app does not exist"
+          git checkout -B master-app  # Create or switch to master-app
+          
+          # Resolve all submodules (download their files)
+          git submodule foreach --recursive git checkout master || true
+          git submodule foreach --recursive git pull origin master || true
+          
+          # Stage and commit all files in master-app
+          git add --all
+          git commit -m "Update master-app branch with resolved submodules" || echo "No changes to commit"
+
+          # Push master-app branch
+          git push origin master-app --force
+
+      # Step 4: Verify Branch State (Optional)
+      - name: Verify Branch
+        run: |
+          git checkout master-app
+          ls -la  # List all files, including resolved submodules
