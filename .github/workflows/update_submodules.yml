@@ -1,51 +1,32 @@
-name: Update Submodules and Create Fully-Resolved Branch
+name: Update Subtrees
 
 on:
-  push:
-    branches:
-      - master  # Trigger on the master branch
   repository_dispatch:
-    types: [update_submodules]  # Triggered by webhook
+    types: [update-subtrees]
 
 jobs:
-  update_submodules:
+  update-subtrees:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout master branch with authentication for private submodules
-      - name: Checkout Repository with Submodules
+      - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.TOKEN_PRIVATE_APP_SHUBKB_COM }}  # Use PAT for authentication
-          submodules: recursive      # Fetch submodules
+          token: ${{ secrets.TOKEN_PRIVATE_APP_SHUBKB_COM }}
+          fetch-depth: 0  # Necessary for subtree operations
 
-      # Step 2: Update submodules in the master branch
-      - name: Update Submodules
+      - name: Update geo-api-php Subtree
         run: |
-          git submodule update --remote --merge
+          git subtree pull --prefix=api/geo https://github.com/shubkb07/geo-api-php.git main --squash
+
+      - name: Update quick-share-web Subtree
+        run: |
+          git subtree pull --prefix=share https://github.com/shubkb07/quick-share-web.git main --squash
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Update submodules to the latest state" || echo "No changes to commit"
-
-      # Step 3: Create/Update the master-app branch
-      - name: Create/Update master-app Branch
-        run: |
-          # Ensure we have the latest state of the master-app branch
-          git fetch origin master-app || echo "Branch master-app does not exist"
-          git checkout -B master-app  # Create or switch to master-app
-          
-          # Resolve all submodules into the master-app branch
-          git submodule foreach --recursive git checkout master || true
-          git submodule foreach --recursive git pull origin master || true
-          
-          # Commit all resolved files into master-app
-          git add --all
-          git commit -m "Update master-app branch with resolved submodules" || echo "No changes to commit"
-
-          # Push master-app branch
-          git push origin master-app --force
-
-      # Step 4: Verify Branch State (Optional)
-      - name: Verify Branch
-        run: |
-          git checkout master-app
-          ls -la  # List all files, including resolved submodules
+          git commit -m "Automated subtree update" || echo "No changes to commit"
+          git push origin main
