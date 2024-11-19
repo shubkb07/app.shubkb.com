@@ -1,8 +1,8 @@
 {
-    "name": "shub/public",
+    "name": "shub/share-a",
     "autoload": {
         "psr-4": {
-            "Shub\\Public\\": "src/"
+            "Shub\\ShareA\\": "src/"
         }
     },
     "authors": [
@@ -13,7 +13,6 @@
     ],
     "require": {
         "lcobucci/jwt": "^4.0",
-        "opis/json-schema": "*",
-        "webonyx/graphql-php": "^15.18"
+        "opis/json-schema": "*"
     }
 }
