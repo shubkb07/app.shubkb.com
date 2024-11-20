@@ -12,8 +12,6 @@
         }
     ],
     "require": {
-        "lcobucci/jwt": "^4.0",
-        "opis/json-schema": "*",
         "webonyx/graphql-php": "^15.18"
     }
 }
